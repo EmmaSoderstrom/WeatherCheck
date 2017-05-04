@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WeatherCheck</string>
+    <string name="input_city_hint">Skriv in stad</string>
+</resources>
