@@ -1,7 +1,14 @@
 package se.sockertoppar.weathercheck;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -16,6 +23,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 import static android.R.attr.data;
@@ -24,32 +32,35 @@ import static android.R.attr.data;
  * Created by User on 2017-05-02.
  */
 
-public class GetWeatherTask extends AsyncTask<String, Void, String> {
+public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
 
     String TAG = "tag";
-    private TextView textView;
-    private RelativeLayout relLayout;
+
+    MainActivity context;
+    JSONObject topLevel = null;
+
+    private LinearLayout weatherLayout;
+    ImageView weatherIcon;
+    //View WeatherListItem;
+    //private TextView weatherIconText;
+    //private TextView weatherTemp;
+
     private String stringCity;
 
 
+    /*public GetWeatherTask(TextView weatherTemp) {
+        this.weatherTemp = weatherTemp;
+    }*/
 
-
-    public GetWeatherTask(TextView textView) {
-        this.textView = textView;
-    }
-
-    public GetWeatherTask(RelativeLayout relLayout) {
-        this.relLayout = relLayout;
+    public GetWeatherTask(MainActivity context, LinearLayout weatherLayout) {
+        this.context = context;
+        this.weatherLayout = weatherLayout;
     }
 
     @Override
-    protected String doInBackground(String... strings) {
+    protected JSONObject doInBackground(String... strings) {
 
-        //String weatherArry[] = {3};
-        String weatherArry[] = new String[3];
         String mainTemp = "UNDEFINED";
-        //String weatherMain = "UNDEFINED";
-        //weatherDescription = "UNDEFINED";
 
 
         try {
@@ -66,21 +77,20 @@ public class GetWeatherTask extends AsyncTask<String, Void, String> {
             }
 
             Log.d(TAG, "response" + builder.toString());
-            JSONObject topLevel = new JSONObject(builder.toString());
+            topLevel = new JSONObject(builder.toString());
 
             JSONObject main = topLevel.getJSONObject("main");
-            mainTemp = String.valueOf(main.getDouble("temp"));
+            //mainTemp = String.valueOf(main.getDouble("temp"));
 
 
-            JSONArray weather = topLevel.getJSONArray("weather");
-            JSONObject weatherObjekt = weather.getJSONObject(0);
+            //JSONArray weather = topLevel.getJSONArray("weather");
+            //JSONObject weatherObjekt = weather.getJSONObject(0);
 
             //String.valueOf(weatherObjekt.getInt("id"));
-            String weatherDescription = String.valueOf(weatherObjekt.getString("description"));
+            //String weatherDescription = String.valueOf(weatherObjekt.getString("description"));
             //String.valueOf(weatherObjekt.getString("main"));
             //String.valueOf(weatherObjekt.getString("icon"));
 
-            Log.d(TAG, "doInBackground: weatherMain " + weatherDescription );
 
 
 
@@ -88,14 +98,88 @@ public class GetWeatherTask extends AsyncTask<String, Void, String> {
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
-        return mainTemp;
+        return topLevel;
     }
 
     @Override
-    protected void onPostExecute(String temp) {
-        textView.setText("Current Weather: " + temp);
+    protected void onPostExecute(JSONObject jsonObjekt) {
 
-        //double  celsius = Double.parseDouble(temp) - 273.15;
-        //textView.setText("Current Weather: " + celsius);
+        /*LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        WeatherListItem = (View) inflater.inflate(R.layout.weather_list_item, null, true);
+        weatherLayout.addView(WeatherListItem);*/
+
+        weatherIcon = (ImageView) weatherLayout.findViewById(R.id.weather_icon);
+        TextView weatherIconText = (TextView) weatherLayout.findViewById(R.id.weather_icon_text);
+        TextView weatherCity = (TextView) weatherLayout.findViewById(R.id.weather_city);
+        TextView weatherCountry = (TextView) weatherLayout.findViewById(R.id.weather_country);
+        TextView weatherTemp = (TextView) weatherLayout.findViewById(R.id.weather_temp);
+
+        //JSONObject main = null;
+        String iconUrl = null;
+        String weatherDescription = null;
+        String mainTemp = null;
+        String name = null;
+        String sysCountry = null;
+
+        try {
+
+            JSONArray weather = jsonObjekt.getJSONArray("weather");
+            JSONObject weatherObjekt = weather.getJSONObject(0);
+            //icon
+            String iconCode = String.valueOf(weatherObjekt.getString("icon"));
+            iconUrl = "http://openweathermap.org/img/w/" + iconCode + ".png";
+
+            //icon text
+            weatherDescription = String.valueOf(weatherObjekt.getString("description"));
+
+            //temperatur
+            JSONObject main = jsonObjekt.getJSONObject("main");
+            mainTemp = String.valueOf(main.getDouble("temp"));
+
+            //stad namn
+            name = String.valueOf(jsonObjekt.getString("name"));
+            //lands kod
+            JSONObject sys = jsonObjekt.getJSONObject("sys");
+            sysCountry = String.valueOf(sys.getString("country"));
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        new DownloadImage().execute(iconUrl);
+        weatherIconText.setText(weatherDescription);
+        weatherCity.setText(name);
+        weatherCountry.setText(", " + sysCountry);
+        weatherTemp.setText(mainTemp + " °c");
+
+        //weatherTemp = (TextView) weatherLayout.findViewById(R.id.weather_temp);
+        //weatherTemp.setText(mainTemp + " °c");
+    }
+
+    private class DownloadImage extends AsyncTask<String, Void, Bitmap> {
+
+        @Override
+        protected Bitmap doInBackground(String... URL) {
+
+            String imageURL = URL[0];
+
+            Bitmap bitmap = null;
+            try {
+                // Download Image from URL
+                InputStream input = new java.net.URL(imageURL).openStream();
+                // Decode Bitmap
+                bitmap = BitmapFactory.decodeStream(input);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return bitmap;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            weatherIcon.setImageBitmap(result);
+        }
     }
 }
