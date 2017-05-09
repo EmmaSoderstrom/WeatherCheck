@@ -79,7 +79,7 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
             Log.d(TAG, "response" + builder.toString());
             topLevel = new JSONObject(builder.toString());
 
-            JSONObject main = topLevel.getJSONObject("main");
+            //JSONObject main = topLevel.getJSONObject("main");
             //mainTemp = String.valueOf(main.getDouble("temp"));
 
 
@@ -90,8 +90,6 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
             //String weatherDescription = String.valueOf(weatherObjekt.getString("description"));
             //String.valueOf(weatherObjekt.getString("main"));
             //String.valueOf(weatherObjekt.getString("icon"));
-
-
 
 
 

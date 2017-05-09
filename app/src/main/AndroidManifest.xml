@@ -3,6 +3,8 @@
     package="se.sockertoppar.weathercheck">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!--<meta-data android:name="com.google.android.geo.API_KEY"-->
+        <!--android:value="AIzaSyBWkh7L5fIdFvQ5k3GR52JofT3zPiN7bs0"/>-->
 
 
     <application
