@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">WeatherCheck</string>
+    <string name="google_places_api_key">AIzaSyDZ9ccReHC4SN8F_Orgr_F20wTMiigcOEs</string>
     <string name="input_city_hint">Skriv in stad</string>
 </resources>

@@ -1,11 +1,25 @@
 package se.sockertoppar.weathercheck;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.DhcpInfo;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -22,24 +36,44 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class MainActivity extends Activity implements AdapterView.OnItemClickListener {
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+
+import static se.sockertoppar.weathercheck.GooglePlacesAutocompleteAdapter.context;
+
+
+public class MainActivity extends AppCompatActivity {
 
     static String TAG = "tag";
     JSONObject data = null;
-
-
-    private static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
-    private static final String TYPE_AUTOCOMPLETE = "/autocomplete";
-    private static final String OUT_JSON = "/json";
-    private static final String API_KEY_AUTOFILL = "AIzaSyDl0sL-EDUrQwepkBq5tuLeFwn67_mBxJE";
+    MainActivity mainActivity;
+    Context context;
+    
 
     private static final String WEATHER_API_BASE = "http://api.openweathermap.org/data/2.5/weather?q=";
     private String city = "Stockholm";
@@ -48,40 +82,90 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
     private static final String API_KEY_WEATHER = "&appid=3a87cd70e4003ebbdf1c8272e812b2c2";
 
     ViewGroup viewGroup;
-    AutoCompleteTextView autoCompView;
+    PlaceAutocompleteFragment autocompleteFragment;
     LinearLayout weatherLayout;
 
-    //GooglePlacesAutocompleteAdapter googlePlacesAutocompleteAdapter;
-
+    LocationManager mLocationManager;
+    LocationManager locationManager;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mainActivity = this;
+        context = getApplicationContext();
 
+        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+        mainLayout.setBackgroundResource(R.drawable.backgound_gradient);
+        setToolbar();
 
         viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
-        autoCompView = (AutoCompleteTextView) findViewById(R.id.autoCompleteTextView);
         weatherLayout = (LinearLayout) findViewById(R.id.weather_layout);
 
-        autoCompView.setInputType(InputType.TYPE_CLASS_TEXT);
-        //autofill textview
-        autoCompView.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.city_list_item));
-        autoCompView.setOnItemClickListener(this);
 
-        //klick OnKeyListener för enter
-        autoCompView.setOnKeyListener(new View.OnKeyListener() {
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                // sker om det trycks enter
-                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+        autocompleteFragment = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+//        autocompleteFragment.setBoundsBias(new LatLngBounds(
+//                new LatLng(-33.880490, 151.184363),
+//                new LatLng(-33.858754, 151.229596)));
 
-                    weatherSearch();
-                    return true;
-                }
-                return false;
+        AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
+                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES)
+                .build();
+        autocompleteFragment.setFilter(typeFilter);
+
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.d(TAG, "Place: " + place.getName() + " " + place.getAddress());
+                city = place.getAddress().toString();
+
+                weatherSearch();
+//                try {
+//                    Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(mainActivity);
+//                    startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+//                } catch (GooglePlayServicesRepairableException e) {
+//                    // TODO: Handle the error.
+//                    Log.d(TAG, "ERROR catch 1 : " + e );
+//                } catch (GooglePlayServicesNotAvailableException e) {
+//                    // TODO: Handle the error.
+//                    Log.d(TAG, "ERROR catch 2 : " + e );
+//                }
             }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.d(TAG, "ERROR onError : " + status );
+            }
+
         });
+
+
+
+
+
+
+//        autoCompView.setInputType(InputType.TYPE_CLASS_TEXT);
+//        //autofill textview
+//        autoCompView.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.city_list_item));
+//        autoCompView.setOnItemClickListener(this);
+//
+//        //klick OnKeyListener för enter
+//        autoCompView.setOnKeyListener(new View.OnKeyListener() {
+//            public boolean onKey(View v, int keyCode, KeyEvent event) {
+//                // sker om det trycks enter
+//                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+//
+//                    weatherSearch();
+//                    return true;
+//                }
+//                return false;
+//            }
+//        });
 
         //lägger till väder vyn
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -89,22 +173,36 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         weatherLayout.addView(WeatherListItem);
 
 
+        NetworkDetect();
 
+    }
 
+    /**
+     * Sätter toolbar
+     */
+    public void setToolbar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(null);
 
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        LinearLayout searchLayout = (LinearLayout) inflater.inflate(R.layout.searchbar, null,true);
 
+        toolbar.addView(searchLayout);
 
     }
 
     public void onClickSearch(View view){
         //inputCity.requestFocus();
         weatherSearch();
+
     }
 
     public void weatherSearch(){
         Log.d(TAG, "onKey: Enter ");
 
-        city = autoCompView.getText().toString();
+        //city = autoCompView.getText().toString();
+
         String urlWeather = String.format(WEATHER_API_BASE
                 + city
                 + units
@@ -118,186 +216,94 @@ public class MainActivity extends Activity implements AdapterView.OnItemClickLis
         imm.hideSoftInputFromWindow(viewGroup.getWindowToken(), 0);
     }
 
-    /**
-     * onClick på ett autofill alternativ
-     * @param adapterView
-     * @param view
-     * @param position
-     * @param id
-     */
-    public void onItemClick(AdapterView adapterView, View view, int position, long id) {
-        //String str = (String) adapterView.getItemAtPosition(position);
-        //Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+
+
+    //Check the internet connection.
+    private void NetworkDetect() {
+        Log.d(TAG, "NetwordDetect: ");
+        boolean WIFI = false;
+        boolean MOBILE = false;
+
+        ConnectivityManager CM = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo[] networkInfo = CM.getAllNetworkInfo();
+
+        for (NetworkInfo netInfo : networkInfo) {
+            if (netInfo.getTypeName().equalsIgnoreCase("WIFI")) {
+                if (netInfo.isConnected())
+                    WIFI = true;
+            }
+            if (netInfo.getTypeName().equalsIgnoreCase("MOBILE")) {
+                if (netInfo.isConnected())
+                    MOBILE = true;
+            }
+        }
+
+        if(WIFI == true) {
+            String IPaddress = GetDeviceipWiFiData();
+            Log.d(TAG, "WIFI: IPaddress " + IPaddress);
+            getCity(IPaddress);
+        }
+        if(MOBILE == true) {
+            String IPaddress = GetDeviceipMobileData();
+            Log.d(TAG, "MOBILE: IPaddress " + IPaddress);
+            getCity(IPaddress);
+        }
+    }
+
+    public void getCity(String IPaddress){
+        //String urlIP = String.format("https://ipapi.co/" + IPaddress + "/json/");
+        String urlIP = String.format("https://ipapi.co/" + "217.209.179.205" + "/json/");
+        new GetIP(MainActivity.this, weatherLayout).execute(urlIP);
+    }
+
+    public String GetDeviceipMobileData(){
+
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = en.nextElement();
+
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    // for getting IPV4 format
+                    //if (!inetAddress.isLoopbackAddress() && InetAddressUtils.isIPv4Address(ipv4 = inetAddress.getHostAddress())) {
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address){
+                        String ip = inetAddress.getHostAddress().toString();
+                        return ip;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Log.e("IP Address", ex.toString());
+        }
+        return null;
+
+    }
+
+    public String GetDeviceipWiFiData() {
+
+        WifiManager wm = (WifiManager) context.getSystemService(WIFI_SERVICE);
+        @SuppressWarnings("deprecation")
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+
+        return ip;
+
+    }
+
+    public void setIPCity(String city){
+        this.city = city;
         weatherSearch();
+    }
+
+    public void setLatLong(String stringLatitude, String stringLongitude){
+        double latitude = Double.parseDouble(stringLatitude);
+        double longitude = Double.parseDouble(stringLongitude);
+
+        autocompleteFragment.setBoundsBias(new LatLngBounds(
+                new LatLng(latitude, longitude),
+                new LatLng(latitude, longitude)));
     }
 
 
 
 
-
-//    public static ArrayList autocomplete(String input) {
-//        ArrayList resultList = null;
-//        String urlAutofill = String.format(PLACES_API_BASE
-//                + TYPE_AUTOCOMPLETE
-//                + OUT_JSON);
-//
-//        HttpURLConnection conn = null;
-//        StringBuilder jsonResults = new StringBuilder();
-//        try {
-//            StringBuilder sBuilder = new StringBuilder(urlAutofill);
-//            sBuilder.append("?key=" + API_KEY_AUTOFILL);
-//            //sBuilder.append("&components=country:se");
-//            //sBuilder.append("&lang=se");
-//            sBuilder.append("&input=" + URLEncoder.encode(input, "utf8"));
-//
-//            URL url = new URL(sBuilder.toString());
-//            conn = (HttpURLConnection) url.openConnection();
-//            InputStreamReader in = new InputStreamReader(conn.getInputStream());
-//
-//            // Load the results into a StringBuilder
-//            int read;
-//            char[] buff = new char[1024];
-//            while ((read = in.read(buff)) != -1) {
-//                jsonResults.append(buff, 0, read);
-//            }
-//        } catch (MalformedURLException e) {
-//            Log.d(TAG, "Error processing Places API URL" + e);
-//            return resultList;
-//        } catch (IOException e) {
-//            Log.d(TAG, "Error connecting to Places API" + e);
-//            return resultList;
-//        } finally {
-//            if (conn != null) {
-//                conn.disconnect();
-//            }
-//        }
-//
-//        try {
-//            // Create a JSON object hierarchy from the results
-//            JSONObject jsonObject = new JSONObject(jsonResults.toString());
-//            JSONArray predsJsonArray = jsonObject.getJSONArray("predictions");
-//
-//            // Extract the Place descriptions from the results
-//            resultList = new ArrayList(predsJsonArray.length());
-//            for (int i = 0; i < predsJsonArray.length(); i++) {
-//                Log.d(TAG, predsJsonArray.getJSONObject(i).getString("description"));
-//                Log.d(TAG, "============================================================");
-//                //lägger till resultat i lista som ska visas
-//                resultList.add(predsJsonArray.getJSONObject(i).getString("description"));
-//            }
-//        } catch (JSONException e) {
-//            Log.d(TAG, "Cannot process JSON results" + e);
-//        }
-//
-//
-//        //if (convertView == null) {
-//       // LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//
-////        if (position != (resultList.size() - 1))
-////            view = inflater.inflate(R.layout.autocomplete_list_item, null);
-////        else
-////            view = inflater.inflate(R.layout.autocomplete_google_logo, null);
-//        //}
-//        //else {
-//        //    view = convertView;
-//        //}
-//
-////        if (position != (resultList.size() - 1)) {
-////            TextView autocompleteTextView = (TextView) view.findViewById(R.id.autocompleteText);
-////            autocompleteTextView.setText(resultList.get(position));
-////        }
-////        else {
-////            ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
-////            // not sure what to do 😀
-////        }
-//
-//        //ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
-//
-//        addGoogleLoggo(resultList);
-//
-//        return resultList;
-//    }
-//
-//
-//    static public void addGoogleLoggo(ArrayList resultList){
-//        resultList.add("hej");
-//    }
-
-
-//    @Override
-//    public View getView(int position, View convertView, ViewGroup parent) {
-//        View view;
-//
-//        //if (convertView == null) {
-//        LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//
-//        if (position != (resultList.size() - 1))
-//            view = inflater.inflate(R.layout.autocomplete_list_item, null);
-//        else
-//            view = inflater.inflate(R.layout.autocomplete_google_logo, null);
-//        //}
-//        //else {
-//        //    view = convertView;
-//        //}
-//
-//        if (position != (resultList.size() - 1)) {
-//            TextView autocompleteTextView = (TextView) view.findViewById(R.id.autocompleteText);
-//            autocompleteTextView.setText(resultList.get(position));
-//        }
-//        else {
-//            ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
-//            // not sure what to do 😀
-//        }
-//
-//        return view;
-//    }
-
-
-//    class GooglePlacesAutocompleteAdapter extends ArrayAdapter implements Filterable {
-//        private ArrayList resultList;
-//
-//        public GooglePlacesAutocompleteAdapter(Context context, int textViewResourceId) {
-//            super(context, textViewResourceId);
-//        }
-//
-//        @Override
-//        public int getCount() {
-//            return resultList.size();
-//        }
-//
-//        @Override
-//        public String getItem(int index) {
-//            return resultList.get(index).toString();
-//        }
-//
-//        @Override
-//        public Filter getFilter() {
-//            Filter filter = new Filter() {
-//
-//                @Override
-//                protected FilterResults performFiltering(CharSequence constraint) {
-//                    FilterResults filterResults = new FilterResults();
-//                    if (constraint != null) {
-//                        // Retrieve the autocomplete results.
-//                        resultList = autocomplete(constraint.toString());
-//
-//                        // Assign the data to the FilterResults
-//                        filterResults.values = resultList;
-//                        filterResults.count = resultList.size();
-//                    }
-//                    return filterResults;
-//                }
-//
-//                @Override
-//                protected void publishResults(CharSequence constraint, FilterResults results) {
-//                    if (results != null && results.count > 0) {
-//                        notifyDataSetChanged();
-//                    } else {
-//                        notifyDataSetInvalidated();
-//                    }
-//                }
-//            };
-//            return filter;
-//        }
-//    }
 }

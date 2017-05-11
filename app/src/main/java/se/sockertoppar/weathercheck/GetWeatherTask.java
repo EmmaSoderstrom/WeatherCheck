@@ -79,19 +79,6 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
             Log.d(TAG, "response" + builder.toString());
             topLevel = new JSONObject(builder.toString());
 
-            //JSONObject main = topLevel.getJSONObject("main");
-            //mainTemp = String.valueOf(main.getDouble("temp"));
-
-
-            //JSONArray weather = topLevel.getJSONArray("weather");
-            //JSONObject weatherObjekt = weather.getJSONObject(0);
-
-            //String.valueOf(weatherObjekt.getInt("id"));
-            //String weatherDescription = String.valueOf(weatherObjekt.getString("description"));
-            //String.valueOf(weatherObjekt.getString("main"));
-            //String.valueOf(weatherObjekt.getString("icon"));
-
-
 
         } catch (IOException | JSONException e) {
             e.printStackTrace();
@@ -101,10 +88,6 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject jsonObjekt) {
-
-        /*LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        WeatherListItem = (View) inflater.inflate(R.layout.weather_list_item, null, true);
-        weatherLayout.addView(WeatherListItem);*/
 
         weatherIcon = (ImageView) weatherLayout.findViewById(R.id.weather_icon);
         TextView weatherIconText = (TextView) weatherLayout.findViewById(R.id.weather_icon_text);

@@ -3,8 +3,12 @@
     package="se.sockertoppar.weathercheck">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!--<meta-data android:name="com.google.android.geo.API_KEY"-->
-        <!--android:value="AIzaSyBWkh7L5fIdFvQ5k3GR52JofT3zPiN7bs0"/>-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
 
     <application
@@ -14,6 +18,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -21,6 +27,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_places_api_key"/>
     </application>
 
 </manifest>
