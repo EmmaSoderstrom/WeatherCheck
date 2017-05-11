@@ -121,25 +121,26 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
 
         try {
 
-            JSONArray weather = jsonObjekt.getJSONArray("weather");
-            JSONObject weatherObjekt = weather.getJSONObject(0);
-            //icon
-            String iconCode = String.valueOf(weatherObjekt.getString("icon"));
-            iconUrl = "http://openweathermap.org/img/w/" + iconCode + ".png";
+            if(jsonObjekt != null) {
+                JSONArray weather = jsonObjekt.getJSONArray("weather");
+                JSONObject weatherObjekt = weather.getJSONObject(0);
+                //icon
+                String iconCode = String.valueOf(weatherObjekt.getString("icon"));
+                iconUrl = "http://openweathermap.org/img/w/" + iconCode + ".png";
 
-            //icon text
-            weatherDescription = String.valueOf(weatherObjekt.getString("description"));
+                //icon text
+                weatherDescription = String.valueOf(weatherObjekt.getString("description"));
 
-            //temperatur
-            JSONObject main = jsonObjekt.getJSONObject("main");
-            mainTemp = String.valueOf(main.getDouble("temp"));
+                //temperatur
+                JSONObject main = jsonObjekt.getJSONObject("main");
+                mainTemp = String.valueOf(main.getDouble("temp"));
 
-            //stad namn
-            name = String.valueOf(jsonObjekt.getString("name"));
-            //lands kod
-            JSONObject sys = jsonObjekt.getJSONObject("sys");
-            sysCountry = String.valueOf(sys.getString("country"));
-
+                //stad namn
+                name = String.valueOf(jsonObjekt.getString("name"));
+                //lands kod
+                JSONObject sys = jsonObjekt.getJSONObject("sys");
+                sysCountry = String.valueOf(sys.getString("country"));
+            }
 
         } catch (JSONException e) {
             e.printStackTrace();
