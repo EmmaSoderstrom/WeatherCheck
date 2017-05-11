@@ -3,9 +3,6 @@
     package="se.sockertoppar.weathercheck">
 
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!--<meta-data android:name="com.google.android.geo.API_KEY"-->
-        <!--android:value="AIzaSyBWkh7L5fIdFvQ5k3GR52JofT3zPiN7bs0"/>-->
-
 
     <application
         android:allowBackup="true"
@@ -21,6 +18,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="3a87cd70e4003ebbdf1c8272e812b2c2"/>
     </application>
 
 </manifest>
