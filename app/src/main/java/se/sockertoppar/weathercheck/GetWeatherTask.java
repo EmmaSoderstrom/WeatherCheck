@@ -146,12 +146,13 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
             e.printStackTrace();
         }
 
-
-        new DownloadImage().execute(iconUrl);
-        weatherIconText.setText(weatherDescription);
-        weatherCity.setText(name);
-        weatherCountry.setText(", " + sysCountry);
-        weatherTemp.setText(mainTemp + " °c");
+        if(jsonObjekt != null) {
+            new DownloadImage().execute(iconUrl);
+            weatherIconText.setText(weatherDescription);
+            weatherCity.setText(name);
+            weatherCountry.setText(", " + sysCountry);
+            weatherTemp.setText(mainTemp + " °c");
+        }
 
         //weatherTemp = (TextView) weatherLayout.findViewById(R.id.weather_temp);
         //weatherTemp.setText(mainTemp + " °c");
