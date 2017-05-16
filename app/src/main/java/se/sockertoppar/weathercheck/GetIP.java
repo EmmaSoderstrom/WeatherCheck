@@ -34,7 +34,7 @@ public class GetIP extends AsyncTask<String, Void, JSONObject> {
     String city = null;
 
     
-    public GetIP(MainActivity context, LinearLayout weatherLayout) {
+    public GetIP(MainActivity context) {
         this.context = context;
     }
 
@@ -55,7 +55,6 @@ public class GetIP extends AsyncTask<String, Void, JSONObject> {
                 builder.append(inputString);
             }
 
-            Log.d(TAG, "response" + builder.toString());
             topLevel = new JSONObject(builder.toString());
 
 
@@ -67,13 +66,11 @@ public class GetIP extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject jsonObjekt) {
-        Log.d(TAG, "onPostExecute: ");
         Log.d(TAG, "onPostExecute: jsonObjekt " + jsonObjekt);
 
         try {
 
             city = String.valueOf(jsonObjekt.getString("city"));
-            Log.d(TAG, "onPostExecute: city " + city);
 
             context.setIPCity(city);
             context.setLatLong(String.valueOf(jsonObjekt.getString("latitude")),
@@ -82,7 +79,6 @@ public class GetIP extends AsyncTask<String, Void, JSONObject> {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
 
     }
     

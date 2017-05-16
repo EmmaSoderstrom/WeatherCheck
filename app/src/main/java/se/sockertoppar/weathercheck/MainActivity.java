@@ -1,70 +1,49 @@
 package se.sockertoppar.weathercheck;
 
-import android.Manifest;
-import android.app.Activity;
+import android.app.ActionBar;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Criteria;
-import android.location.Location;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Point;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
-import android.net.DhcpInfo;
 import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.AsyncTask;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.text.format.Formatter;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 
-import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
-
-import static se.sockertoppar.weathercheck.GooglePlacesAutocompleteAdapter.context;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -73,17 +52,20 @@ public class MainActivity extends AppCompatActivity {
     JSONObject data = null;
     MainActivity mainActivity;
     Context context;
-    
+
 
     private static final String WEATHER_API_BASE = "http://api.openweathermap.org/data/2.5/weather?q=";
-    private String city = "Stockholm";
+    //private String city = "Stockholm";
     private String units = "&units=metric";
     private String language = "&lang=se";
     private static final String API_KEY_WEATHER = "&appid=3a87cd70e4003ebbdf1c8272e812b2c2";
 
     ViewGroup viewGroup;
     PlaceAutocompleteFragment autocompleteFragment;
-    LinearLayout weatherLayout;
+    RelativeLayout weatherLayout;
+    ImageButton swapViewButton;
+
+    int windowHight;
 
     LocationManager mLocationManager;
     LocationManager locationManager;
@@ -97,11 +79,18 @@ public class MainActivity extends AppCompatActivity {
         context = getApplicationContext();
 
         RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
-        mainLayout.setBackgroundResource(R.drawable.backgound_gradient);
+        mainLayout.setBackgroundResource(R.drawable.backgound_gradient_sun);
         setToolbar();
 
         viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
-        weatherLayout = (LinearLayout) findViewById(R.id.weather_layout);
+        //weatherLayout = (RelativeLayout) findViewById(R.id.weather_layout);
+        weatherLayout = (RelativeLayout) findViewById(R.id.swap_view);
+        swapViewButton = (ImageButton) findViewById(R.id.swap_view_button);
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        windowHight = size.x;
 
 
         autocompleteFragment = (PlaceAutocompleteFragment)
@@ -121,19 +110,9 @@ public class MainActivity extends AppCompatActivity {
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
                 Log.d(TAG, "Place: " + place.getName() + " " + place.getAddress());
-                city = place.getAddress().toString();
+                String city = place.getAddress().toString();
 
-                weatherSearch();
-//                try {
-//                    Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).build(mainActivity);
-//                    startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
-//                } catch (GooglePlayServicesRepairableException e) {
-//                    // TODO: Handle the error.
-//                    Log.d(TAG, "ERROR catch 1 : " + e );
-//                } catch (GooglePlayServicesNotAvailableException e) {
-//                    // TODO: Handle the error.
-//                    Log.d(TAG, "ERROR catch 2 : " + e );
-//                }
+                weatherSearch(city);
             }
 
             @Override
@@ -145,17 +124,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
-
-
-
-//        autoCompView.setInputType(InputType.TYPE_CLASS_TEXT);
-//        //autofill textview
-//        autoCompView.setAdapter(new GooglePlacesAutocompleteAdapter(this, R.layout.city_list_item));
-//        autoCompView.setOnItemClickListener(this);
-//
 //        //klick OnKeyListener för enter
-//        autoCompView.setOnKeyListener(new View.OnKeyListener() {
+//        autocompleteFragment.setOnKeyListener(new View.OnKeyListener() {
 //            public boolean onKey(View v, int keyCode, KeyEvent event) {
 //                // sker om det trycks enter
 //                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
@@ -167,13 +137,44 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
+
+
+
+
+
         //lägger till väder vyn
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View WeatherListItem = (View) inflater.inflate(R.layout.weather_list_item, null, true);
-        weatherLayout.addView(WeatherListItem);
+        View weatherListItem = (View) inflater.inflate(R.layout.weather_list_item, null, true);
 
 
-        NetworkDetect();
+        weatherLayout.addView(weatherListItem);
+
+//        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) weatherListItem.getLayoutParams();
+//        params.height = (int)windowHight;
+//        weatherListItem.setLayoutParams(params);
+        ViewGroup.LayoutParams params = weatherListItem.getLayoutParams();
+        params.height = (int)windowHight;
+        //params.width = 320;
+        weatherListItem.setLayoutParams(params);
+
+
+        RelativeLayout.LayoutParams layout_description =
+                new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT);
+
+        weatherListItem.setLayoutParams(layout_description);
+
+        //weatherListItem.setPadding(0, 200, 0, 0);
+        weatherListItem.setBackgroundColor((Color.parseColor("#000000")));
+
+        Log.d(TAG, "onCreate: windowHight " + windowHight);
+        Log.d(TAG, "onCreate: weatherListItem " + weatherListItem.getHeight());
+
+
+
+        String urlIP = String.format("https://ipapi.co/json/");
+        new GetIP(MainActivity.this).execute(urlIP);
+
 
     }
 
@@ -186,22 +187,46 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(null);
 
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        LinearLayout searchLayout = (LinearLayout) inflater.inflate(R.layout.searchbar, null,true);
+        RelativeLayout searchLayout = (RelativeLayout) inflater.inflate(R.layout.searchbar, null,true);
 
         toolbar.addView(searchLayout);
+
+
+        //ActionBar tool = getActionBar();
+        int actionbarheight = toolbar.getHeight();
+
+        Log.d(TAG, "setToolbar: String.valueOf(actionbarheight)" + actionbarheight);
+
+
+
+
+        Log.d(TAG, "setToolbar: toolbar.getHeight() " + searchLayout.getHeight());
 
     }
 
     public void onClickSearch(View view){
-        //inputCity.requestFocus();
-        weatherSearch();
+
+        int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+        try {
+            Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(this);
+            startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
+
+        } catch (GooglePlayServicesRepairableException |
+
+                GooglePlayServicesNotAvailableException e){
+            // TODO: Handle the error.
+        }
 
     }
 
-    public void weatherSearch(){
-        Log.d(TAG, "onKey: Enter ");
+    public void weatherSearch(String city){
+        Log.d(TAG, "weatherSearch: city " + city);
 
-        //city = autoCompView.getText().toString();
+//        if(city == null){
+//            city = "Stockholm";
+//        }else{
+//
+//        }
 
         String urlWeather = String.format(WEATHER_API_BASE
                 + city
@@ -215,11 +240,65 @@ public class MainActivity extends AppCompatActivity {
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(viewGroup.getWindowToken(), 0);
     }
+    
+    public void onClickSwapView(View view){
+        Log.d(TAG, "onClickSwapView: ");
+        TranslateAnimation animation = new TranslateAnimation(0, 0, 0,(windowHight + 600) * -1);
+        animation.setDuration(1000);
+        animation.setFillAfter(false);
+        animation.setAnimationListener(new MyAnimationListener());
+
+        weatherLayout.startAnimation(animation);
+
+        //swapViewButton.setImageDrawable(R.drawable.ic_keyboard_arrow_up_white_50dp);
+    }
+
+
+    public void setIPCity(String city){
+        Log.d(TAG, "setIPCity: " + city);
+        weatherSearch(city);
+    }
+
+    public void setLatLong(String stringLatitude, String stringLongitude){
+        Log.d(TAG, "setLatLong: " + stringLatitude);
+        double latitude = Double.parseDouble(stringLatitude);
+        double longitude = Double.parseDouble(stringLongitude);
+
+        autocompleteFragment.setBoundsBias(new LatLngBounds(
+                new LatLng(latitude, longitude),
+                new LatLng(latitude, longitude)));
+    }
+
+    private class MyAnimationListener implements Animation.AnimationListener {
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            weatherLayout.clearAnimation();
+            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(0, (windowHight + 200) * - 1);
+            weatherLayout.setLayoutParams(lp);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+        }
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+        }
+
+    }
 
 
 
-    //Check the internet connection.
-    private void NetworkDetect() {
+}
+
+
+
+
+
+
+//Check the internet connection.
+   /* private void getFirstLocationNetworkDetect() {
         Log.d(TAG, "NetwordDetect: ");
         boolean WIFI = false;
         boolean MOBILE = false;
@@ -248,14 +327,14 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "MOBILE: IPaddress " + IPaddress);
             getCity(IPaddress);
         }
-    }
-
+    }*/
+/*
     public void getCity(String IPaddress){
-        //String urlIP = String.format("https://ipapi.co/" + IPaddress + "/json/");
-        String urlIP = String.format("https://ipapi.co/" + "217.209.179.205" + "/json/");
-        new GetIP(MainActivity.this, weatherLayout).execute(urlIP);
-    }
-
+        String urlIP = String.format("https://ipapi.co/" + IPaddress + "/json/");
+        //String urlIP = String.format("https://ipapi.co/" + "217.209.179.205" + "/json/");
+        new GetIP(MainActivity.this).execute(urlIP);
+    }*/
+/*
     public String GetDeviceipMobileData(){
 
         try {
@@ -277,8 +356,8 @@ public class MainActivity extends AppCompatActivity {
         }
         return null;
 
-    }
-
+    }*/
+/*
     public String GetDeviceipWiFiData() {
 
         WifiManager wm = (WifiManager) context.getSystemService(WIFI_SERVICE);
@@ -287,23 +366,4 @@ public class MainActivity extends AppCompatActivity {
 
         return ip;
 
-    }
-
-    public void setIPCity(String city){
-        this.city = city;
-        weatherSearch();
-    }
-
-    public void setLatLong(String stringLatitude, String stringLongitude){
-        double latitude = Double.parseDouble(stringLatitude);
-        double longitude = Double.parseDouble(stringLongitude);
-
-        autocompleteFragment.setBoundsBias(new LatLngBounds(
-                new LatLng(latitude, longitude),
-                new LatLng(latitude, longitude)));
-    }
-
-
-
-
-}
+    }*/

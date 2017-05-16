@@ -14,24 +14,41 @@
     </include>
 
 
-    <!--<fragment-->
-        <!--android:id="@+id/place_autocomplete_fragment"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"-->
-        <!--/>-->
-
-
-    <LinearLayout
-        android:id="@+id/weather_layout"
+    <RelativeLayout
+        android:id="@+id/swap_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:orientation="vertical"
-        android:layout_below="@+id/toolbar">
+        android:paddingTop="?android:attr/actionBarSize">
+
+    </RelativeLayout>
 
 
-    </LinearLayout>
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/weather_layout"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_margin="16dp"-->
+        <!--android:orientation="vertical"-->
+        <!--android:layout_below="@+id/toolbar">-->
+
+
+    <!--</RelativeLayout>-->
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/weather_layout"></RelativeLayout>
+
+    <ImageButton
+        android:id="@+id/swap_view_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/ic_keyboard_arrow_down_white_50dp"
+        android:background="@null"
+        android:onClick="onClickSwapView"
+        />
 
     <android.support.design.widget.FloatingActionButton
         android:layout_width="wrap_content"

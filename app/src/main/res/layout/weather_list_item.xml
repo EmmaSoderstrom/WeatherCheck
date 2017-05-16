@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:id="@+id/weather_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin="16dp">
+    android:layout_margin="16dp"
+    >
 
 
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/city"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -22,21 +24,25 @@
                 android:id="@+id/weather_city"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="stad"
+                android:text=""
                 android:textSize="25sp"
+                android:textColor="#ffffff"
                 android:gravity="right"/>
             <TextView
                 android:id="@+id/weather_country"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="10sp"
-                android:text=", Se"/>
+                android:textColor="#ffffff"
+                android:text=""/>
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/icon"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_below="@+id/city"
+            android:layout_marginTop="40dp"
             android:orientation="vertical">
             <ImageView
                 android:id="@+id/weather_icon"
@@ -51,36 +57,54 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:gravity="center_horizontal"
-                android:text="- -"/>
+                android:text=""
+                android:textColor="#ffffff"/>
+
         </LinearLayout>
 
-        <LinearLayout
+        <RelativeLayout
+            android:id="@+id/temp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:orientation="vertical">
-
-
-
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="111dp">
 
             <TextView
                 android:id="@+id/weather_temp"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
                 android:layout_gravity="center_vertical"
-                android:textSize="40dp"
-                android:text="-- °c"
+                android:textSize="80dp"
+                android:fontFamily="sans-serif-light"
+                android:textColor="#ffffff"
+                android:shadowColor="#60000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:text="0"
                 />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="50sp"
+                android:fontFamily="sans-serif-light"
+                android:textColor="#ffffff"
+                android:shadowColor="#60000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:text=" °c"
+                android:layout_alignBaseline="@+id/weather_temp"
+                android:layout_alignBottom="@+id/weather_temp"
+                android:layout_toRightOf="@+id/weather_temp"
+                android:layout_toEndOf="@+id/weather_temp" />
 
-        </LinearLayout>
+        </RelativeLayout>
 
-        <ImageButton
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:src=""/>
-
-    </LinearLayout>
+    </RelativeLayout>
 
 
 
@@ -152,4 +176,4 @@
 
         <!--</LinearLayout>-->
 
-</LinearLayout>
+</RelativeLayout>
