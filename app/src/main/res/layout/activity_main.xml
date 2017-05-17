@@ -17,7 +17,15 @@
     <RelativeLayout
         android:id="@+id/swap_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingTop="?android:attr/actionBarSize">
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/swap_view_more_info"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:paddingTop="?android:attr/actionBarSize">
 
     </RelativeLayout>

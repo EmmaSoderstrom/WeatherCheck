@@ -19,11 +19,14 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -63,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
     ViewGroup viewGroup;
     PlaceAutocompleteFragment autocompleteFragment;
     RelativeLayout weatherLayout;
+    RelativeLayout weatherLayoutMoreInfo;
     ImageButton swapViewButton;
+    boolean swipeOut = true;
 
     int windowHight;
 
@@ -85,12 +90,13 @@ public class MainActivity extends AppCompatActivity {
         viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
         //weatherLayout = (RelativeLayout) findViewById(R.id.weather_layout);
         weatherLayout = (RelativeLayout) findViewById(R.id.swap_view);
+        weatherLayoutMoreInfo = (RelativeLayout) findViewById(R.id.swap_view_more_info);
         swapViewButton = (ImageButton) findViewById(R.id.swap_view_button);
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        windowHight = size.x;
+        windowHight = size.y;
 
 
         autocompleteFragment = (PlaceAutocompleteFragment)
@@ -108,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
                 Log.d(TAG, "Place: " + place.getName() + " " + place.getAddress());
                 String city = place.getAddress().toString();
 
@@ -124,52 +129,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-//        //klick OnKeyListener för enter
-//        autocompleteFragment.setOnKeyListener(new View.OnKeyListener() {
-//            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                // sker om det trycks enter
-//                if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
-//
-//                    weatherSearch();
-//                    return true;
-//                }
-//                return false;
-//            }
-//        });
-
-
-
-
-
-
         //lägger till väder vyn
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View weatherListItem = (View) inflater.inflate(R.layout.weather_list_item, null, true);
-
+        View weatherListItem = inflater.inflate(R.layout.weather_list_item, null, true);
+        View weatherListMoreInfo = inflater.inflate(R.layout.weather_list_more_info, null, true);
 
         weatherLayout.addView(weatherListItem);
-
-//        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) weatherListItem.getLayoutParams();
-//        params.height = (int)windowHight;
-//        weatherListItem.setLayoutParams(params);
-        ViewGroup.LayoutParams params = weatherListItem.getLayoutParams();
-        params.height = (int)windowHight;
-        //params.width = 320;
-        weatherListItem.setLayoutParams(params);
-
-
-        RelativeLayout.LayoutParams layout_description =
-                new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT,
-                RelativeLayout.LayoutParams.MATCH_PARENT);
-
-        weatherListItem.setLayoutParams(layout_description);
-
-        //weatherListItem.setPadding(0, 200, 0, 0);
-        weatherListItem.setBackgroundColor((Color.parseColor("#000000")));
-
-        Log.d(TAG, "onCreate: windowHight " + windowHight);
-        Log.d(TAG, "onCreate: weatherListItem " + weatherListItem.getHeight());
-
+        weatherLayoutMoreInfo.addView(weatherListMoreInfo);
+        weatherLayoutMoreInfo.setVisibility(View.INVISIBLE);
 
 
         String urlIP = String.format("https://ipapi.co/json/");
@@ -241,17 +208,7 @@ public class MainActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(viewGroup.getWindowToken(), 0);
     }
     
-    public void onClickSwapView(View view){
-        Log.d(TAG, "onClickSwapView: ");
-        TranslateAnimation animation = new TranslateAnimation(0, 0, 0,(windowHight + 600) * -1);
-        animation.setDuration(1000);
-        animation.setFillAfter(false);
-        animation.setAnimationListener(new MyAnimationListener());
 
-        weatherLayout.startAnimation(animation);
-
-        //swapViewButton.setImageDrawable(R.drawable.ic_keyboard_arrow_up_white_50dp);
-    }
 
 
     public void setIPCity(String city){
@@ -269,23 +226,41 @@ public class MainActivity extends AppCompatActivity {
                 new LatLng(latitude, longitude)));
     }
 
-    private class MyAnimationListener implements Animation.AnimationListener {
+    public void onClickSwapView(View view){
+        Log.d(TAG, "onClickSwapView: ");
 
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            weatherLayout.clearAnimation();
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(0, (windowHight + 200) * - 1);
-            weatherLayout.setLayoutParams(lp);
+        Animation mSlideInTop = AnimationUtils.loadAnimation(mainActivity, R.anim.slide_in_top);
+        Animation mSlideOutTop = AnimationUtils.loadAnimation(mainActivity, R.anim.slide_out_top);
+        Animation mSlideInBotton = AnimationUtils.loadAnimation(mainActivity, R.anim.slide_in_bottom);
+        Animation mSlideOutBotton = AnimationUtils.loadAnimation(mainActivity, R.anim.slide_out_botton);
+
+
+        if(swipeOut) {
+            Log.d(TAG, "onClickSwapView: if");
+            weatherLayout.startAnimation(mSlideOutTop);
+            weatherLayout.setVisibility(View.INVISIBLE);
+            weatherLayoutMoreInfo.startAnimation(mSlideInBotton);
+            weatherLayoutMoreInfo.setVisibility(View.VISIBLE);
+
+            rotate180(swapViewButton);
+            swipeOut = false;
+        }else{
+            Log.d(TAG, "onClickSwapView: else");
+            weatherLayout.startAnimation(mSlideInTop);
+            weatherLayout.setVisibility(View.VISIBLE);
+            weatherLayoutMoreInfo.startAnimation(mSlideOutBotton);
+            weatherLayoutMoreInfo.setVisibility(View.INVISIBLE);
+
+            rotate180(swapViewButton);
+            swipeOut = true;
         }
 
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
+    }
 
-        @Override
-        public void onAnimationStart(Animation animation) {
-        }
 
+    private void rotate180(View view){
+        float deg = swapViewButton.getRotation() + 180F;
+        view.animate().rotation(deg).setInterpolator(new AccelerateDecelerateInterpolator());
     }
 
 
