@@ -48,7 +48,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_gravity="center_horizontal"
-                android:src="@drawable/ic_remove_black_24dp"/>
+                android:src="@drawable/ic_remove_white_24dp"/>
 
             <TextView
                 android:id="@+id/weather_icon_text"
@@ -123,7 +123,7 @@
                     <!--android:layout_width="60dp"-->
                     <!--android:layout_height="60dp"-->
                     <!--android:layout_gravity="center_horizontal"-->
-                    <!--android:src="@drawable/ic_remove_black_24dp"/>-->
+                    <!--android:src="@drawable/ic_remove_white_24dp"/>-->
 
                 <!--<TextView-->
                     <!--android:id="@+id/weather_icon_text"-->

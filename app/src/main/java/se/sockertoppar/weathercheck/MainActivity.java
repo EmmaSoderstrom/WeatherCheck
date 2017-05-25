@@ -25,6 +25,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.view.inputmethod.InputMethodManager;
 
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -70,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     ImageButton swapViewButton;
     boolean swipeOut = true;
 
-    int windowHight;
+    //int windowHight;
 
     LocationManager mLocationManager;
     LocationManager locationManager;
@@ -93,17 +94,23 @@ public class MainActivity extends AppCompatActivity {
         weatherLayoutMoreInfo = (RelativeLayout) findViewById(R.id.swap_view_more_info);
         swapViewButton = (ImageButton) findViewById(R.id.swap_view_button);
 
-        Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        windowHight = size.y;
+        //Display display = getWindowManager().getDefaultDisplay();
+        //Point size = new Point();
+        //display.getSize(size);
+        //windowHight = size.y;
 
 
         autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+
 //        autocompleteFragment.setBoundsBias(new LatLngBounds(
 //                new LatLng(-33.880490, 151.184363),
 //                new LatLng(-33.858754, 151.229596)));
+
+        ((EditText)autocompleteFragment.getView().findViewById(R.id.place_autocomplete_search_input))
+                .setTextColor(Color.parseColor("#FFFFFF"));
+        ((EditText)autocompleteFragment.getView().findViewById(R.id.place_autocomplete_search_input))
+                .setHintTextColor(Color.parseColor("#60FFFFFF"));
 
         AutocompleteFilter typeFilter = new AutocompleteFilter.Builder()
                 .setTypeFilter(AutocompleteFilter.TYPE_FILTER_CITIES)
@@ -122,8 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.d(TAG, "ERROR onError : " + status );
+                Log.d(TAG, "ERROR onError detta : " + status );
             }
 
         });
@@ -160,14 +166,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         //ActionBar tool = getActionBar();
-        int actionbarheight = toolbar.getHeight();
+        //int actionbarheight = toolbar.getHeight();
 
-        Log.d(TAG, "setToolbar: String.valueOf(actionbarheight)" + actionbarheight);
+        //Log.d(TAG, "setToolbar: String.valueOf(actionbarheight)" + actionbarheight);
 
-
-
-
-        Log.d(TAG, "setToolbar: toolbar.getHeight() " + searchLayout.getHeight());
+        //Log.d(TAG, "setToolbar: toolbar.getHeight() " + searchLayout.getHeight());
 
     }
 
@@ -181,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (GooglePlayServicesRepairableException |
 
                 GooglePlayServicesNotAvailableException e){
-            // TODO: Handle the error.
+
         }
 
     }
@@ -189,11 +192,11 @@ public class MainActivity extends AppCompatActivity {
     public void weatherSearch(String city){
         Log.d(TAG, "weatherSearch: city " + city);
 
-//        if(city == null){
-//            city = "Stockholm";
-//        }else{
-//
-//        }
+        if(city.equals("null")){
+            Log.d(TAG, "weatherSearch: citySearch == null ");
+            city = "Stockholm";
+        }
+        
 
         String urlWeather = String.format(WEATHER_API_BASE
                 + city
@@ -207,9 +210,6 @@ public class MainActivity extends AppCompatActivity {
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(viewGroup.getWindowToken(), 0);
     }
-    
-
-
 
     public void setIPCity(String city){
         Log.d(TAG, "setIPCity: " + city);
@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setLatLong(String stringLatitude, String stringLongitude){
-        Log.d(TAG, "setLatLong: " + stringLatitude);
+        Log.d(TAG, "setLatLong: " + stringLatitude + " " + stringLongitude);
         double latitude = Double.parseDouble(stringLatitude);
         double longitude = Double.parseDouble(stringLongitude);
 
@@ -236,109 +236,29 @@ public class MainActivity extends AppCompatActivity {
 
 
         if(swipeOut) {
-            Log.d(TAG, "onClickSwapView: if");
             weatherLayout.startAnimation(mSlideOutTop);
             weatherLayout.setVisibility(View.INVISIBLE);
             weatherLayoutMoreInfo.startAnimation(mSlideInBotton);
             weatherLayoutMoreInfo.setVisibility(View.VISIBLE);
-
             rotate180(swapViewButton);
+
             swipeOut = false;
         }else{
-            Log.d(TAG, "onClickSwapView: else");
             weatherLayout.startAnimation(mSlideInTop);
             weatherLayout.setVisibility(View.VISIBLE);
             weatherLayoutMoreInfo.startAnimation(mSlideOutBotton);
             weatherLayoutMoreInfo.setVisibility(View.INVISIBLE);
-
             rotate180(swapViewButton);
+
             swipeOut = true;
         }
-
     }
-
 
     private void rotate180(View view){
         float deg = swapViewButton.getRotation() + 180F;
         view.animate().rotation(deg).setInterpolator(new AccelerateDecelerateInterpolator());
     }
 
-
-
 }
 
 
-
-
-
-
-//Check the internet connection.
-   /* private void getFirstLocationNetworkDetect() {
-        Log.d(TAG, "NetwordDetect: ");
-        boolean WIFI = false;
-        boolean MOBILE = false;
-
-        ConnectivityManager CM = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo[] networkInfo = CM.getAllNetworkInfo();
-
-        for (NetworkInfo netInfo : networkInfo) {
-            if (netInfo.getTypeName().equalsIgnoreCase("WIFI")) {
-                if (netInfo.isConnected())
-                    WIFI = true;
-            }
-            if (netInfo.getTypeName().equalsIgnoreCase("MOBILE")) {
-                if (netInfo.isConnected())
-                    MOBILE = true;
-            }
-        }
-
-        if(WIFI == true) {
-            String IPaddress = GetDeviceipWiFiData();
-            Log.d(TAG, "WIFI: IPaddress " + IPaddress);
-            getCity(IPaddress);
-        }
-        if(MOBILE == true) {
-            String IPaddress = GetDeviceipMobileData();
-            Log.d(TAG, "MOBILE: IPaddress " + IPaddress);
-            getCity(IPaddress);
-        }
-    }*/
-/*
-    public void getCity(String IPaddress){
-        String urlIP = String.format("https://ipapi.co/" + IPaddress + "/json/");
-        //String urlIP = String.format("https://ipapi.co/" + "217.209.179.205" + "/json/");
-        new GetIP(MainActivity.this).execute(urlIP);
-    }*/
-/*
-    public String GetDeviceipMobileData(){
-
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
-                NetworkInterface intf = en.nextElement();
-
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    // for getting IPV4 format
-                    //if (!inetAddress.isLoopbackAddress() && InetAddressUtils.isIPv4Address(ipv4 = inetAddress.getHostAddress())) {
-                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address){
-                        String ip = inetAddress.getHostAddress().toString();
-                        return ip;
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            Log.e("IP Address", ex.toString());
-        }
-        return null;
-
-    }*/
-/*
-    public String GetDeviceipWiFiData() {
-
-        WifiManager wm = (WifiManager) context.getSystemService(WIFI_SERVICE);
-        @SuppressWarnings("deprecation")
-        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-
-        return ip;
-
-    }*/

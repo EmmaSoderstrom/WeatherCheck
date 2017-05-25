@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -63,7 +62,7 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
                 builder.append(inputString);
             }
 
-            Log.d(TAG, "response" + builder.toString());
+            //Log.d(TAG, "response" + builder.toString());
             topLevel = new JSONObject(builder.toString());
 
 
@@ -75,6 +74,7 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject jsonObjekt) {
+        Log.d(TAG, "onPostExecute" + jsonObjekt);
 
         weatherIcon = (ImageView) weatherLayout.findViewById(R.id.weather_icon);
         TextView weatherIconText = (TextView) weatherLayout.findViewById(R.id.weather_icon_text);
@@ -125,8 +125,16 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
 
             // tar bort så det bara blir en decimal utan att runda av?
             //mainTemp = Math.round((mainTemp / sum * 100) * 10) / 10;
-            //DecimalFormat df = new DecimalFormat("#.##");
-            //df.format(mainTemp);
+
+            Log.d(TAG, "onPostExecute1: " +  mainTemp);
+            double mainTempFloat = Double.parseDouble(mainTemp);
+            Log.d(TAG, "onPostExecute2: " +  mainTempFloat);
+            DecimalFormat desMainTempFloat = new DecimalFormat("#.##");
+
+            desMainTempFloat.format(mainTempFloat);
+
+            mainTemp = String.valueOf(mainTempFloat);
+            Log.d(TAG, "onPostExecute3: " +  mainTemp);
             //if(mainTemp.length() >) {
                 //mainTemp = mainTemp.substring(0, 3);
             //}
@@ -143,27 +151,26 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
             case "01d": //sol
                 mainLayout.setBackgroundResource(R.drawable.backgound_gradient_sun);
                 break;
-            case "02d": //lite moln
-                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_few_clouds);
+            case "02d": //moln sol
+                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_sun_clouds);
                 break;
-            case "03d": //tunna moln
-                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_scattered_clouds);
+            case "03d": //moln
+                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_clouds);
                 break;
             case "04d": //moln
-                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_broken_clouds);
+                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_clouds);
                 break;
-            case "09d": //mycket regn / showerrain
-                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_showerrain);
+            case "09d": //moln regn
+                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_sun_rain_clouds);
                 break;
-            case "10d": //lite regn
-                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_rain);
+            case "10d": //regn sol moln
+                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_rain_clouds_thunder);
                 break;
             case "11d": //åska
-                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_thunder);
+                mainLayout.setBackgroundResource(R.drawable.backgound_gradient_rain_clouds_thunder);
                 break;
             case "13d": //snö
                 mainLayout.setBackgroundResource(R.drawable.backgound_gradient_snow);
-
                 break;
             case "50d": //dimma
                 mainLayout.setBackgroundResource(R.drawable.backgound_gradient_mist);

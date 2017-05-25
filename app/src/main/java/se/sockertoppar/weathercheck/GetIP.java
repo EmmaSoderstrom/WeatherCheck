@@ -66,11 +66,16 @@ public class GetIP extends AsyncTask<String, Void, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject jsonObjekt) {
-        Log.d(TAG, "onPostExecute: jsonObjekt " + jsonObjekt);
+        Log.d(TAG, "onPostExecute ip: jsonObjekt " + jsonObjekt);
 
         try {
 
             city = String.valueOf(jsonObjekt.getString("city"));
+
+            if(city.equals("null")){
+                Log.d(TAG, "onPostExecute: null " + jsonObjekt.getString("timezone"));
+                city = jsonObjekt.getString("timezone");
+            }
 
             context.setIPCity(city);
             context.setLatLong(String.valueOf(jsonObjekt.getString("latitude")),
