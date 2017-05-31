@@ -48,7 +48,6 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
 
         String mainTemp = "UNDEFINED";
 
-
         try {
             URL url = new URL(strings[0]);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
@@ -62,7 +61,6 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
                 builder.append(inputString);
             }
 
-            //Log.d(TAG, "response" + builder.toString());
             topLevel = new JSONObject(builder.toString());
 
 
@@ -123,22 +121,12 @@ public class GetWeatherTask extends AsyncTask<String, Void, JSONObject> {
             weatherCity.setText(name);
             weatherCountry.setText(sysCountry);
 
-            // tar bort så det bara blir en decimal utan att runda av?
-            //mainTemp = Math.round((mainTemp / sum * 100) * 10) / 10;
-
+            // tar bort så det bara blir en decimal
             Log.d(TAG, "onPostExecute1: " +  mainTemp);
             double mainTempFloat = Double.parseDouble(mainTemp);
-            Log.d(TAG, "onPostExecute2: " +  mainTempFloat);
-            DecimalFormat desMainTempFloat = new DecimalFormat("#.##");
-
-            desMainTempFloat.format(mainTempFloat);
-
-            mainTemp = String.valueOf(mainTempFloat);
-            Log.d(TAG, "onPostExecute3: " +  mainTemp);
-            //if(mainTemp.length() >) {
-                //mainTemp = mainTemp.substring(0, 3);
-            //}
-            weatherTemp.setText(mainTemp);
+            mainTemp = String.format("%.1f", mainTempFloat);
+            String mainOneDec = mainTemp.replace(",", ".");
+            weatherTemp.setText(mainOneDec);
         }
     }
 

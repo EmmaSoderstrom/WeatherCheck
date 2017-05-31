@@ -1,14 +1,9 @@
 package se.sockertoppar.weathercheck;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,9 +15,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * Created by User on 2017-05-10.
- */
 
 public class GetIP extends AsyncTask<String, Void, JSONObject> {
 
@@ -69,22 +61,20 @@ public class GetIP extends AsyncTask<String, Void, JSONObject> {
         Log.d(TAG, "onPostExecute ip: jsonObjekt " + jsonObjekt);
 
         try {
-
             city = String.valueOf(jsonObjekt.getString("city"));
-
-            if(city.equals("null")){
-                Log.d(TAG, "onPostExecute: null " + jsonObjekt.getString("timezone"));
-                city = jsonObjekt.getString("timezone");
+            if(!city.equals("null")) {
+                context.weatherSearch(city);
+            }else {
+                double lat = Double.parseDouble(jsonObjekt.getString("lat"));
+                double lng = Double.parseDouble(jsonObjekt.getString("lon"));
+                context.weatherSearchIp("lat=" + lat + "&lon=" + lng);
             }
 
-            context.setIPCity(city);
-            context.setLatLong(String.valueOf(jsonObjekt.getString("latitude")),
-                    String.valueOf(jsonObjekt.getString("longitude")));
+            context.setLatLong(String.valueOf(jsonObjekt.getString("lat")),
+                    String.valueOf(jsonObjekt.getString("lon")));
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
-    
 }

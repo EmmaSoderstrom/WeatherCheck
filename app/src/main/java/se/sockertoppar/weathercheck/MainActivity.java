@@ -19,6 +19,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -41,28 +42,20 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import org.json.JSONObject;
-
-
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.util.Enumeration;
 
 
 public class MainActivity extends AppCompatActivity {
 
     static String TAG = "tag";
-    JSONObject data = null;
-    MainActivity mainActivity;
-    Context context;
-
-
+    int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+    private static final String API_KEY_WEATHER = "&appid=3a87cd70e4003ebbdf1c8272e812b2c2";
     private static final String WEATHER_API_BASE = "http://api.openweathermap.org/data/2.5/weather?q=";
-    //private String city = "Stockholm";
+    private static final String WEATHER_API_BASE_IP = "http://api.openweathermap.org/data/2.5/weather?";
     private String units = "&units=metric";
     private String language = "&lang=se";
-    private static final String API_KEY_WEATHER = "&appid=3a87cd70e4003ebbdf1c8272e812b2c2";
+
+    MainActivity mainActivity;
+    Context context;
 
     ViewGroup viewGroup;
     PlaceAutocompleteFragment autocompleteFragment;
@@ -71,16 +64,12 @@ public class MainActivity extends AppCompatActivity {
     ImageButton swapViewButton;
     boolean swipeOut = true;
 
-    //int windowHight;
-
-    LocationManager mLocationManager;
-    LocationManager locationManager;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mainActivity = this;
         context = getApplicationContext();
 
@@ -89,23 +78,14 @@ public class MainActivity extends AppCompatActivity {
         setToolbar();
 
         viewGroup = (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0);
-        //weatherLayout = (RelativeLayout) findViewById(R.id.weather_layout);
         weatherLayout = (RelativeLayout) findViewById(R.id.swap_view);
         weatherLayoutMoreInfo = (RelativeLayout) findViewById(R.id.swap_view_more_info);
         swapViewButton = (ImageButton) findViewById(R.id.swap_view_button);
 
-        //Display display = getWindowManager().getDefaultDisplay();
-        //Point size = new Point();
-        //display.getSize(size);
-        //windowHight = size.y;
 
-
+        //Google places autocomplete
         autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-
-//        autocompleteFragment.setBoundsBias(new LatLngBounds(
-//                new LatLng(-33.880490, 151.184363),
-//                new LatLng(-33.858754, 151.229596)));
 
         ((EditText)autocompleteFragment.getView().findViewById(R.id.place_autocomplete_search_input))
                 .setTextColor(Color.parseColor("#FFFFFF"));
@@ -117,16 +97,13 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         autocompleteFragment.setFilter(typeFilter);
 
-
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
-                Log.d(TAG, "Place: " + place.getName() + " " + place.getAddress());
-                String city = place.getAddress().toString();
-
+                String city = place.getName().toString();
                 weatherSearch(city);
-            }
 
+            }
             @Override
             public void onError(Status status) {
                 Log.d(TAG, "ERROR onError detta : " + status );
@@ -144,11 +121,9 @@ public class MainActivity extends AppCompatActivity {
         weatherLayoutMoreInfo.addView(weatherListMoreInfo);
         weatherLayoutMoreInfo.setVisibility(View.INVISIBLE);
 
-
-        String urlIP = String.format("https://ipapi.co/json/");
+        //hämtar en första position via ip-adress
+        String urlIP = String.format("http://ip-api.com/json/");
         new GetIP(MainActivity.this).execute(urlIP);
-
-
     }
 
     /**
@@ -163,40 +138,70 @@ public class MainActivity extends AppCompatActivity {
         RelativeLayout searchLayout = (RelativeLayout) inflater.inflate(R.layout.searchbar, null,true);
 
         toolbar.addView(searchLayout);
-
-
-        //ActionBar tool = getActionBar();
-        //int actionbarheight = toolbar.getHeight();
-
-        //Log.d(TAG, "setToolbar: String.valueOf(actionbarheight)" + actionbarheight);
-
-        //Log.d(TAG, "setToolbar: toolbar.getHeight() " + searchLayout.getHeight());
-
     }
 
+    /**
+     * FloatingActionButton sök klick
+     * Startar autocomplete vy
+     * @param view
+     */
     public void onClickSearch(View view){
+        Log.d(TAG, "onClickSearch: ");
 
-        int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+//        ((EditText)autocompleteFragment.getView().findViewById(R.id.place_autocomplete_search_input))
+//                .setSelection(((EditText)autocompleteFragment.getView()
+//                        .findViewById(R.id.place_autocomplete_search_input)).getText().length());
+
+
         try {
             Intent intent = new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_OVERLAY).build(this);
             startActivityForResult(intent, PLACE_AUTOCOMPLETE_REQUEST_CODE);
 
+
         } catch (GooglePlayServicesRepairableException |
-
-                GooglePlayServicesNotAvailableException e){
-
+            GooglePlayServicesNotAvailableException e){
         }
-
     }
 
+    /**
+     * Autocomplete resultat
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlaceAutocomplete.getPlace(this, data);
+                Log.d(TAG, "Place: " + place.getName());
+                String city = place.getName().toString();
+
+                weatherSearch(city);
+                ((EditText)autocompleteFragment.getView().findViewById(R.id.place_autocomplete_search_input))
+                        .setText(place.getName().toString());
+
+            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+                Status status = PlaceAutocomplete.getStatus(this, data);
+                Log.i(TAG, status.getStatusMessage());
+
+
+            } else if (resultCode == RESULT_CANCELED) {
+                // The user canceled the operation.
+            }
+        }
+    }
+
+    /**
+     * Sökmetod när det ska sökas på stad i textform
+     * @param city
+     */
     public void weatherSearch(String city){
         Log.d(TAG, "weatherSearch: city " + city);
 
         if(city.equals("null")){
-            Log.d(TAG, "weatherSearch: citySearch == null ");
             city = "Stockholm";
         }
-        
 
         String urlWeather = String.format(WEATHER_API_BASE
                 + city
@@ -211,13 +216,33 @@ public class MainActivity extends AppCompatActivity {
         imm.hideSoftInputFromWindow(viewGroup.getWindowToken(), 0);
     }
 
-    public void setIPCity(String city){
-        Log.d(TAG, "setIPCity: " + city);
-        weatherSearch(city);
+    /**
+     * Sökmetod när det ska sökas på stad via ip-adress
+     * @param city
+     */
+    public void weatherSearchIp(String city){
+        Log.d(TAG, "weatherSearch: city " + city);
+
+        String urlWeather = String.format(WEATHER_API_BASE_IP
+                + city
+                + units
+                + language
+                + API_KEY_WEATHER);
+
+        new GetWeatherTask(MainActivity.this, weatherLayout).execute(urlWeather);
+
+        //stänger/döljer tangentbord
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(viewGroup.getWindowToken(), 0);
     }
 
+    /**
+     * Lägger till latitude och ongitude till autocomplet, så resultaten högst upp i listan är på städer i närområdet
+     * @param stringLatitude
+     * @param stringLongitude
+     */
     public void setLatLong(String stringLatitude, String stringLongitude){
-        Log.d(TAG, "setLatLong: " + stringLatitude + " " + stringLongitude);
+        //Log.d(TAG, "setLatLong: " + stringLatitude + " " + stringLongitude);
         double latitude = Double.parseDouble(stringLatitude);
         double longitude = Double.parseDouble(stringLongitude);
 
@@ -226,6 +251,10 @@ public class MainActivity extends AppCompatActivity {
                 new LatLng(latitude, longitude)));
     }
 
+    /**
+     * ImageButton pilen startar animition för att byta vyer mellen väder vy nu och detaljerad väder vy
+     * @param view
+     */
     public void onClickSwapView(View view){
         Log.d(TAG, "onClickSwapView: ");
 
@@ -234,31 +263,33 @@ public class MainActivity extends AppCompatActivity {
         Animation mSlideInBotton = AnimationUtils.loadAnimation(mainActivity, R.anim.slide_in_bottom);
         Animation mSlideOutBotton = AnimationUtils.loadAnimation(mainActivity, R.anim.slide_out_botton);
 
-
         if(swipeOut) {
-            weatherLayout.startAnimation(mSlideOutTop);
-            weatherLayout.setVisibility(View.INVISIBLE);
-            weatherLayoutMoreInfo.startAnimation(mSlideInBotton);
-            weatherLayoutMoreInfo.setVisibility(View.VISIBLE);
-            rotate180(swapViewButton);
-
+            makeSwape(weatherLayoutMoreInfo, weatherLayout, mSlideInBotton, mSlideOutTop, swapViewButton);
             swipeOut = false;
-        }else{
-            weatherLayout.startAnimation(mSlideInTop);
-            weatherLayout.setVisibility(View.VISIBLE);
-            weatherLayoutMoreInfo.startAnimation(mSlideOutBotton);
-            weatherLayoutMoreInfo.setVisibility(View.INVISIBLE);
-            rotate180(swapViewButton);
 
+        }else{
+            makeSwape(weatherLayout, weatherLayoutMoreInfo, mSlideInTop, mSlideOutBotton, swapViewButton);
             swipeOut = true;
+
         }
     }
 
-    private void rotate180(View view){
+    /**
+     * Kör animition för att byta väder vy
+     * @param layouIn
+     * @param layoutOut
+     * @param slideIn
+     * @param slideOut
+     * @param button
+     */
+    public void makeSwape(View layouIn, View layoutOut, Animation slideIn, Animation slideOut, ImageButton button){
+        layouIn.startAnimation(slideIn);
+        layouIn.setVisibility(View.VISIBLE);
+        layoutOut.startAnimation(slideOut);
+        layoutOut.setVisibility(View.INVISIBLE);
         float deg = swapViewButton.getRotation() + 180F;
-        view.animate().rotation(deg).setInterpolator(new AccelerateDecelerateInterpolator());
+        button.animate().rotation(deg).setInterpolator(new AccelerateDecelerateInterpolator());
     }
-
 }
 
 
